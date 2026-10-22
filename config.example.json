@@ -1,0 +1,29 @@
+{
+  "limits": {
+    "concurrency": 8,
+    "commandConcurrency": 8,
+    "workerInitial": 1,
+    "workerMax": 8,
+    "workerIdleKeep": 0,
+    "workerIdleRetireMs": 30000,
+    "memorySoftBytes": null,
+    "memoryStopBytes": null,
+    "artifactBytes": 8589934592,
+    "diskBytes": 34359738368,
+    "commandTimeoutMs": 600000,
+    "maxTurns": 128,
+    "autoWakeLimit": null,
+    "rootTurns": null,
+    "rootTimeMs": null,
+    "workerHeapMiB": null,
+    "workerMemoryBytes": null,
+    "workerEmergencyBytes": null
+  },
+  "profiles": {
+    "main": { "inherit": true },
+    "fast": { "inherit": true, "thinkingLevel": "low", "maxConcurrent": 8, "modelConcurrent": 4 },
+    "deep": { "inherit": true, "thinkingLevel": "high", "maxConcurrent": 4 }
+  },
+  "roles": {},
+  "providerModules": []
+}

@@ -1,0 +1,13 @@
+node_modules/
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example
+coverage/
+.pi/
+auth.json
+models.json
+models-store.json
+*.sqlite*
+*.db
