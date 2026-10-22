@@ -1,6 +1,6 @@
 {
   "name": "jsubagent",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": false,
   "description": "Durable Pi subagents with isolated context, event-driven waits, and bounded messaging",
   "type": "module",

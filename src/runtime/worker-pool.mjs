@@ -110,7 +110,12 @@ export class WorkerPool {
       // replacement, and no executor/provider request has started here.
       if (task.memoryPlan?.workerKey && !worker) throw Object.assign(fail('Reserved memory worker is no longer available', 'WORKER_ADMISSION_STALE'), { requestOutcome: 'rejected_before_execution' });
       if (!worker) {
-        if (this.workers.size >= this.maxWorkers) throw fail('Worker process budget unavailable after slot admission', 'BUSY');
+        if (this.workers.size >= this.maxWorkers) {
+          // A sampled cold plan can outlive the process-state snapshot. Re-enter
+          // memory admission before selecting another identity or starting work.
+          if (task.memoryPlan?.cold) throw Object.assign(fail('Cold worker plan is no longer current', 'WORKER_ADMISSION_STALE'), { requestOutcome: 'rejected_before_execution' });
+          throw fail('Worker process budget unavailable after slot admission', 'BUSY');
+        }
         worker = new WorkerConnection(this, this.config, this.configEpoch); this.workers.add(worker);
       }
       worker.busy = true; worker.task = task; worker.hooks = hooks; worker.signal = signal; worker.runToken = randomUUID();

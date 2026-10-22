@@ -5,6 +5,8 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createBenchmarkExpiryTimer, Engine } from '../src/engine.mjs';
 import { RunStore } from '../src/storage.mjs';
+import { Semaphore } from '../src/limits.mjs';
+import { WorkerPool } from '../src/runtime/worker-pool.mjs';
 import { fakeConfig, eventually } from './support.mjs';
 
 const model = { provider: 'fixture', model: 'fixture' };
@@ -24,6 +26,28 @@ async function setup(t, run) {
   });
   return { root, config, store, engine };
 }
+
+test('a stale cold worker reservation is readmitted without failing or executing the task', async t => {
+  let pool, attempts = 0, executions = 0;
+  const f = await setup(t, async task => {
+    if (++attempts === 1) return pool.withWorker({ ...task, memoryPlan: { cold: true, workerKey: null } }, {}, undefined, () => { executions++; });
+    return { state: 'idle', result: 'readmitted', checkpoint: { messages: [] }, usage: {}, turns: 1 };
+  });
+  pool = new WorkerPool(f.config, f.store, new Semaphore(1), { maxWorkers: 1, initialWorkers: 0 });
+  // The prior ps snapshot selected cold startup; by dispatch, the existing
+  // process is idle and fills the process budget. No worker has started this task.
+  pool.workers.add({ busy: false, configEpoch: pool.configEpoch });
+  t.after(() => clearInterval(pool.idleTimer));
+  await f.engine.spawn(params('cold-readmission'));
+  await eventually(() => f.engine.summary(f.engine.get('cold-readmission')).settled);
+  const task = f.engine.get('cold-readmission');
+  assert.equal(task.state, 'idle', task.error);
+  assert.equal(task.result, 'readmitted');
+  assert.equal(attempts, 2);
+  assert.equal(executions, 0, 'the stale reservation must not start an executor');
+  assert.equal(pool.workers.size, 1, 'readmission must not exceed the process cap');
+  assert.equal(pool.slots.active, 0);
+});
 
 test('internal completion settles while the bounded public mutation queue is saturated', async t => {
   let finish;

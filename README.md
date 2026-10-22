@@ -9,7 +9,7 @@ Pi handles model sessions and authentication. Jsubagent adds durable task state,
 Requires a **Node-based Pi 1.3.0 installation**, **Node.js 22.19.0 or newer**, **Git**, and **ripgrep** (`rg` on your PATH). Development checks use Node 24.19.0 on macOS; CI also checks Linux and Node 22.19.0. Windows and standalone compiled Pi binaries have not been verified.
 
 ```sh
-pi install git:github.com/newoostory/Jsubagent@v0.1.0
+pi install git:github.com/newoostory/Jsubagent@v0.1.1
 ```
 
 Start a new Pi session after installation. Use your existing Pi login and selected model. The default `main` profile inherits that model when a child is admitted. No separate account file is bundled.
